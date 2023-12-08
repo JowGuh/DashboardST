@@ -32,6 +32,11 @@ results_produtos = cursor.fetchall()
 
 df_produtos = pd.DataFrame(results_produtos, columns=[i[0] for i in cursor.description])
 
+cursor.execute("SELECT * FROM ESTOQUE")
+results_estoque = cursor.fetchall()
+
+df_estoque = pd.DataFrame(results_estoque, columns=[i[0] for i in cursor.description])
+
 # Fechar o cursor e a conexão
 cursor.close()
 conn.close()
@@ -81,15 +86,16 @@ st.sidebar.markdown("# Selecione o gráfico que você deseja")
 
 # Adicionar checkboxes para selecionar quais gráficos mostrar
 mostrar_pedidos_mes = st.sidebar.checkbox("Pedidos por Mês", value=True)
-mostrar_pedidos_dia = st.sidebar.checkbox("Pedidos por Dia", value=True)
+mostrar_vendas_derivacoes = st.sidebar.checkbox("Vendas de Derivações", value=True)
+mostrar_Marketplace = st.sidebar.checkbox("Marketplace", value=True)
 mostrar_origem_pedido = st.sidebar.checkbox("Origem do Pedido", value=True)
 mostrar_vendas_estado = st.sidebar.checkbox("Vendas por Estado", value=True)
-mostrar_vendas_derivacoes = st.sidebar.checkbox("Vendas de Derivações", value=True)
-
+mostrar_estoque_marca = st.sidebar.checkbox("Estoque por Marca", value=True)
+mostrar_pedidos_dia = st.sidebar.checkbox("Pedidos por Dia", value=True)
 # Exibir o gráfico correspondente à opção selecionada
 with st.expander("Pedidos por Mês", expanded=mostrar_pedidos_mes):
     if mostrar_pedidos_mes:
-        cor_palette1 = px.colors.sequential.Teal
+        cor_palette3 = px.colors.qualitative.Bold
         fig_Month = px.bar(
             pedidos_por_mes,
             x="Mes",
@@ -97,50 +103,10 @@ with st.expander("Pedidos por Mês", expanded=mostrar_pedidos_mes):
             title="Pedidos em 2023",
             color="Mes",
             orientation="v",
+            color_discrete_sequence=cor_palette3,
         )
         fig_Month.update_layout(xaxis={"categoryorder": "array", "categoryarray": ordem_meses})
         st.plotly_chart(fig_Month, use_container_width=True)
-
-with st.expander("Pedidos por Dia", expanded=mostrar_pedidos_dia):
-    if mostrar_pedidos_dia:
-        selected_month_name = st.multiselect("Selecione o Mês", df["Mes"].unique(), key="pedidos_dia")
-        filtered_df = df[df["Mes"].isin(selected_month_name)]
-        pedidos_por_dia = filtered_df["Date"].value_counts().reset_index()
-        pedidos_por_dia.columns = ["Date", "Pedidos por Dia"]
-        cor_palette2 = px.colors.sequential.Teal
-        fig_Day = px.bar(
-            pedidos_por_dia,
-            x="Pedidos por Dia",
-            y="Date",
-            title=f"Pedidos por dia em {selected_month_name}",
-            orientation="h",
-            color="Date",
-        )
-        fig_Day.update_layout(xaxis_title="Dia do Mês", yaxis_title="Pedidos por Dia")
-        st.plotly_chart(fig_Day, use_container_width=True)
-
-with st.expander("Origem do Pedido", expanded=mostrar_origem_pedido):
-    if mostrar_origem_pedido:
-        fig_Origem = px.pie(
-            df,
-            names="Origem",
-            title="Origem do Pedido",
-            color="Origem",
-        )
-        st.plotly_chart(fig_Origem, use_container_width=True)
-
-with st.expander("Vendas por Estado", expanded=mostrar_vendas_estado):
-    if mostrar_vendas_estado:
-        pedidos_em_cada_estado = df_nf.groupby("Estado").size().reset_index(name="QTD de Pedidos")
-        cor_palette3 = px.colors.sequential.Teal
-        fig_estado = px.bar(
-            pedidos_em_cada_estado,
-            x="Estado",
-            y="QTD de Pedidos",
-            title="Vendas por Estado",
-            color="Estado",
-        )
-        st.plotly_chart(fig_estado, use_container_width=True)
 
 with st.expander("Vendas de Derivações", expanded=mostrar_vendas_derivacoes):
     if mostrar_vendas_derivacoes:
@@ -226,9 +192,8 @@ with st.expander("Vendas de Derivações", expanded=mostrar_vendas_derivacoes):
             )
             st.plotly_chart(fig_produtos, use_container_width=True)
 
-
-with st.expander("", expanded=mostrar_origem_pedido):
-    if mostrar_origem_pedido:
+with st.expander("", expanded=mostrar_Marketplace):
+    if mostrar_Marketplace:
         col1, col2 = st.columns(2)
         # Contar a quantidade de ocorrências para cada valor único em "Origem"
         origem_counts = df_produtos["ORIGEM"].value_counts()
@@ -252,7 +217,7 @@ with st.expander("", expanded=mostrar_origem_pedido):
         # Exibir o gráfico no Streamlit
         col1.plotly_chart(fig_donut, use_container_width=True)
 
-with st.expander("", expanded=mostrar_origem_pedido):
+with st.expander("", expanded=mostrar_Marketplace):
     origem_selecionada = col2.selectbox("Selecione o Marketplace", df_produtos["ORIGEM"].unique(), key="origem_pedido")
 
     # Filtrar o DataFrame com base na origem selecionada
@@ -269,3 +234,101 @@ with st.expander("", expanded=mostrar_origem_pedido):
     )
 
     col2.plotly_chart(fig_modelos, use_container_width=True)
+
+
+
+with st.expander("Origem do Pedido", expanded=mostrar_origem_pedido):
+    if mostrar_origem_pedido:
+        fig_Origem = px.pie(
+            df,
+            names="Origem",
+            title="Origem do Pedido",
+            color="Origem",
+        )
+        st.plotly_chart(fig_Origem, use_container_width=True)
+
+with st.expander("Vendas por Estado", expanded=mostrar_vendas_estado):
+    if mostrar_vendas_estado:
+        pedidos_em_cada_estado = df_nf.groupby("Estado").size().reset_index(name="QTD de Pedidos")
+        cor_palette3 = px.colors.qualitative.Bold
+        fig_estado = px.bar(
+            pedidos_em_cada_estado,
+            x="Estado",
+            y="QTD de Pedidos",
+            title="Vendas por Estado",
+            color="Estado",
+            color_discrete_sequence=cor_palette3,
+        )
+        st.plotly_chart(fig_estado, use_container_width=True)
+
+
+
+with st.expander("Estoque por Marca", expanded=mostrar_estoque_marca):
+    col1, col2 = st.columns(2)
+
+    # Contar a quantidade de ocorrências para cada marca na tabela de estoque
+    contagem_marcas_estoque = df_estoque['MARCA'].value_counts()
+
+    # Criar um DataFrame para o gráfico de donut
+    df_contagem_marcas_estoque = pd.DataFrame({
+        "Marca": contagem_marcas_estoque.index,
+        "Quantidade": contagem_marcas_estoque.values
+    })
+
+    # Criar um gráfico de donut
+    fig_donut_estoque = px.pie(
+        df_contagem_marcas_estoque,
+        names="Marca",
+        values="Quantidade",
+        hole=0.3,
+        title="Estoque por Marca"
+    )
+
+    # Configurar o layout do gráfico
+    fig_donut_estoque.update_layout(title="Estoque por Marca")
+
+    # Exibir o gráfico no Streamlit
+    col1.plotly_chart(fig_donut_estoque, use_container_width=True)
+
+    
+
+    # Criar um widget de seleção para a marca apenas se houver dados
+    if not contagem_marcas_estoque.empty:
+        marca_selecionada_estoque = col2.selectbox("Selecione a Marca", contagem_marcas_estoque.index)
+
+        # Filtrar o DataFrame com base na marca selecionada
+        df_filtrado_por_marca_estoque = df_estoque[df_estoque['MARCA'] == marca_selecionada_estoque]
+        quantidae_estoque = df_filtrado_por_marca_estoque.groupby("PRODUTO").size().reset_index(name="QTD ESTOQUE")
+
+        
+
+        # Criar um gráfico de barras
+        fig_quantidade_por_produto_estoque = px.bar(
+            quantidae_estoque,
+            x='PRODUTO',
+            y='QTD ESTOQUE',
+            title=f'Quantidade de Produtos por Marca - {marca_selecionada_estoque}',
+            orientation="v",
+            color="PRODUTO"
+        )
+
+        # Exibir o gráfico de barras no Streamlit
+        col2.plotly_chart(fig_quantidade_por_produto_estoque, use_container_width=True)
+
+with st.expander("Pedidos por Dia", expanded=mostrar_pedidos_dia):
+    if mostrar_pedidos_dia:
+        selected_month_name = st.multiselect("Selecione o(s) Mês(es)", df["Mes"].unique(), key="pedidos_dia")
+        filtered_df = df[df["Mes"].isin(selected_month_name)]
+        pedidos_por_dia = filtered_df["Date"].value_counts().reset_index()
+        pedidos_por_dia.columns = ["Date", "Pedidos por Dia"]
+        cor_palette2 = px.colors.sequential.Teal
+        fig_Day = px.bar(
+            pedidos_por_dia,
+            x="Pedidos por Dia",
+            y="Date",
+            orientation="h",
+            color="Date",
+        )
+        fig_Day.update_layout(xaxis_title="Dia do Mês", yaxis_title="Pedidos por Dia")
+        st.plotly_chart(fig_Day, use_container_width=True)
+
