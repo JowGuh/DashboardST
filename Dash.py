@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 
 
-st.set_page_config(layout="wide", page_title="DOSTIUS")
+st.set_page_config(layout="wide", page_title="TO OVERFLOW")
 
 # Conectar ao banco de dados
 conn = mysql.connector.connect(
@@ -179,7 +179,7 @@ with st.expander("Vendas de Derivações", expanded=mostrar_vendas_derivacoes):
 
         # Agrupe os dados filtrados por derivação e conte a quantidade de ocorrências para todos os modelos  
         if df_produtos_filtrado_marca is not None:
-            df_produtos_grouped = df_produtos_filtrado_marca.groupby(['NOME-PRODUTO', 'COR']).size().reset_index(
+            df_produtos_grouped = df_produtos_filtrado_marca.groupby(['NOME-PRODUTO']).size().reset_index(
                 name='Quantidade')
 
             cor_palette4 = px.colors.sequential.Teal
@@ -187,7 +187,7 @@ with st.expander("Vendas de Derivações", expanded=mostrar_vendas_derivacoes):
                 df_produtos_grouped,
                 x='NOME-PRODUTO',
                 y='Quantidade',
-                color='COR',
+                color='NOME-PRODUTO',
                 title=f'Vendas de Derivações para Todas as Marcas e Modelos',
             )
             st.plotly_chart(fig_produtos, use_container_width=True)
@@ -298,15 +298,15 @@ with st.expander("Estoque por Marca", expanded=mostrar_estoque_marca):
 
         # Filtrar o DataFrame com base na marca selecionada
         df_filtrado_por_marca_estoque = df_estoque[df_estoque['MARCA'] == marca_selecionada_estoque]
-        quantidae_estoque = df_filtrado_por_marca_estoque.groupby("PRODUTO").size().reset_index(name="QTD ESTOQUE")
+        
 
         
 
         # Criar um gráfico de barras
         fig_quantidade_por_produto_estoque = px.bar(
-            quantidae_estoque,
+            df_filtrado_por_marca_estoque,
             x='PRODUTO',
-            y='QTD ESTOQUE',
+            y='QUANTIDADE ESTOQUE',
             title=f'Quantidade de Produtos por Marca - {marca_selecionada_estoque}',
             orientation="v",
             color="PRODUTO"
@@ -331,4 +331,3 @@ with st.expander("Pedidos por Dia", expanded=mostrar_pedidos_dia):
         )
         fig_Day.update_layout(xaxis_title="Dia do Mês", yaxis_title="Pedidos por Dia")
         st.plotly_chart(fig_Day, use_container_width=True)
-
